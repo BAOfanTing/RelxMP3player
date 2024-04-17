@@ -15,6 +15,7 @@
 #include <QSqlDatabase>             //数据库相关
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlRecord>
 
 #include <QMessageBox>
 #include <QTime>
@@ -61,5 +62,6 @@ private:
     Ui::OnlineMp3Widget *ui;
     bool mousePress = false;
     QPoint movePoint;
+    QSqlDatabase db;
 };
 #endif // ONLINEMP3WIDGET_H
