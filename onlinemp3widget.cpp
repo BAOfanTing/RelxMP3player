@@ -72,6 +72,12 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
         }
     }
 
+    //播放操作
+    player = new QMediaPlayer;
+    playerlist = new QMediaPlaylist;
+
+
+
 }
 
 OnlineMp3Widget::~OnlineMp3Widget()
@@ -112,6 +118,32 @@ void OnlineMp3Widget::mousePressEvent(QMouseEvent *event)
     movePoint = event->globalPos() - pos();  // 计算鼠标相对于窗口左上角的偏移量
 }
 
+void OnlineMp3Widget::hashJsonAnalysis(QByteArray JsonData)
+{
+
+}
+
+//访问HTTP网页
+void OnlineMp3Widget::httpAccess(QString url)
+{
+    //实例化网络请求操作事项
+    request = new QNetworkRequest;
+
+    //将url网页地址存入request请求中
+    request->setUrl(url);
+
+    //实例化网络管理（访问）
+    manager = new QNetworkAccessManager;
+
+    //通过get,上传具体的请求
+    manager->get(*request);
+
+    //当网页回复消息，出发finish信号，读取数据
+    connect(manager,&QNetworkAccessManager::finished,this,&OnlineMp3Widget::netReplay);
+}
+
+
+
 void OnlineMp3Widget::on_btn_close_clicked()
 {
     this->close();
@@ -130,9 +162,40 @@ void OnlineMp3Widget::on_btn_change_clicked()
 }
 
 
+//搜索歌曲
 void OnlineMp3Widget::on_btn_search_clicked()
 {
+    // 清空搜索队列
+    ui->lw_learch->clear();
 
+    // 清理数据库中已经存储的 hash 等数据
+    QSqlQuery query;
+    QString sql = "delete from songlist;" ;
+
+    if(!query.exec(sql))
+    {
+        QMessageBox::critical(nullptr,"错误",query.lastError().text());
+    }
+
+    // 根据用户输入的 MP3 名称发起操作请求
+    QString url = kugouSearchApi + QString("format=json&keyword=%1&page=1&pagesize=20&showtype=1").arg(ui->le_search->text());
+
+    // 发起 HTTP 请求
+    httpAccess(url);
+
+    QByteArray JsonData;
+    QEventLoop loop;
+
+    // 等待 HTTP 请求完成并获取数据
+    auto c = connect(this, &OnlineMp3Widget::finish, [&](const QByteArray &data){
+        JsonData = data;
+        loop.exit(1);
+    });
+    loop.exec();
+    disconnect(c);
+
+    // 解析获取的 JSON 数据
+    hashJsonAnalysis(JsonData);
 }
 
 
@@ -182,4 +245,22 @@ void OnlineMp3Widget::on_hs_songtime_valueChanged(int value)
 {
 
 }
+
+void OnlineMp3Widget::updateDuration(qint64)
+{
+
+}
+
+void OnlineMp3Widget::lyricTextShow(QString str)
+{
+
+}
+
+void OnlineMp3Widget::netReplay(QNetworkReply *reply)
+{
+
+}
+
+
+
 

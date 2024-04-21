@@ -22,6 +22,10 @@
 #include <math.h>
 #include <QMouseEvent>
 
+static QString kugouSearchApi = "http://mobilecdn.kugou.com/api/v3/search/song?";
+static QString kugouDownldadApi = "https://wwwapi.kugou.com/yy/index.php?";
+
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class OnlineMp3Widget;
@@ -41,7 +45,11 @@ public:
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
+    void hashJsonAnalysis(QByteArray JsonData);
+    void httpAccess(QString url);
 
+signals:
+    void finish(QByteArray Data);
 
 private slots:
     void on_btn_close_clicked();                //关闭窗口
@@ -58,10 +66,21 @@ private slots:
     void on_hs_songtime_sliderReleased();
     void on_hs_songtime_valueChanged(int value);
 
+    void updateDuration(qint64);                //跟新播放的进度条
+    void lyricTextShow(QString str);
+    void netReplay(QNetworkReply *reply);
+
+
 private:
     Ui::OnlineMp3Widget *ui;
     bool mousePress = false;
     QPoint movePoint;
     QSqlDatabase db;
+
+    QMediaPlayer *player;
+    QMediaPlaylist *playerlist;
+
+    QNetworkRequest *request;
+    QNetworkAccessManager *manager;
 };
 #endif // ONLINEMP3WIDGET_H
