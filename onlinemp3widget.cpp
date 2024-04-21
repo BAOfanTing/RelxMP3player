@@ -208,6 +208,39 @@ void OnlineMp3Widget::httpAccess(QString url)
     connect(manager,&QNetworkAccessManager::finished,this,&OnlineMp3Widget::netReply);
 }
 
+// 解析 JSON 数据，获取音乐播放 URL
+QString OnlineMp3Widget::musicJsonAnalysis(QByteArray JsonData)
+{
+    // 保存 JSON 数据到文件中以便查看
+    QFile file("download.json");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        file.write(JsonData);
+        file.close();
+    }
+
+    // 解析 JSON 数据
+    QJsonDocument document = QJsonDocument::fromJson(JsonData);
+    if (document.isObject())
+    {
+        QJsonObject data = document.object();
+        if (data.contains("data"))
+        {
+            QJsonObject objectPlayurl = data.value("data").toObject();
+            // 如果包含歌词，发送歌词显示信号
+            if (objectPlayurl.contains("lyrics"))
+            {
+                emit lyricShow(objectPlayurl.value("lyrics").toString());
+            }
+            // 返回音乐播放 URL
+            if (objectPlayurl.contains("play_url"))
+            {
+                return objectPlayurl.value("play_url").toString();
+            }
+        }
+    }
+}
+
 
 void OnlineMp3Widget::on_btn_close_clicked()
 {

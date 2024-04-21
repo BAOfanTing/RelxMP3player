@@ -52,6 +52,7 @@ public:
 
 signals:
     void finish(QByteArray Data);
+    void lyricShow(QString url);
 
 private slots:
     void on_btn_close_clicked();                //关闭窗口
