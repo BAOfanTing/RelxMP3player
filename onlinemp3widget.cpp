@@ -139,7 +139,7 @@ void OnlineMp3Widget::httpAccess(QString url)
     manager->get(*request);
 
     //当网页回复消息，出发finish信号，读取数据
-    connect(manager,&QNetworkAccessManager::finished,this,&OnlineMp3Widget::netReplay);
+    connect(manager,&QNetworkAccessManager::finished,this,&OnlineMp3Widget::netReply);
 }
 
 
@@ -256,9 +256,28 @@ void OnlineMp3Widget::lyricTextShow(QString str)
 
 }
 
-void OnlineMp3Widget::netReplay(QNetworkReply *reply)
+// 读取网络数据槽函数
+void OnlineMp3Widget::netReply(QNetworkReply *reply)
 {
+    // 获取响应状态码，200 属于正常
+    QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    qDebug() << status_code;
 
+    // 重定向目标属性
+    reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+
+    if (reply->error() == QNetworkReply::NoError)
+    {
+        // 如果没有发生网络错误，则读取响应数据
+        QByteArray data = reply->readAll();
+        // 发射自定义的 finish 信号，将响应数据传递给槽函数
+        emit finish(data);
+    }
+    else
+    {
+        // 如果发生了网络错误，则打印错误信息
+        qDebug() << reply->errorString();
+    }
 }
 
 

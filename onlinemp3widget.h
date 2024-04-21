@@ -68,7 +68,7 @@ private slots:
 
     void updateDuration(qint64);                //跟新播放的进度条
     void lyricTextShow(QString str);
-    void netReplay(QNetworkReply *reply);
+    void netReply(QNetworkReply *reply);
 
 
 private:
