@@ -48,6 +48,7 @@ public:
     void mousePressEvent(QMouseEvent *event);
     void hashJsonAnalysis(QByteArray JsonData);
     void httpAccess(QString url);
+    QString musicJsonAnalysis(QByteArray JsonData);
 
 signals:
     void finish(QByteArray Data);
@@ -70,7 +71,7 @@ private slots:
     void updateDuration(qint64);                //跟新播放的进度条
     void lyricTextShow(QString str);
     void netReply(QNetworkReply *reply);
-
+    void downloadPlayer(QString album_id, QString hash);
 
 private:
     Ui::OnlineMp3Widget *ui;

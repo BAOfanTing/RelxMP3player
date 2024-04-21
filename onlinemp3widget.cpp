@@ -124,7 +124,7 @@ void OnlineMp3Widget::hashJsonAnalysis(QByteArray JsonData)
     //qDebug()<< JsonData; // 打印输入的 JSON 数据，用于调试
 
     //保存json查看数据
-    QFile file("output.json");
+    QFile file("hash.json");
     if(file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         file.write(JsonData);
@@ -207,7 +207,6 @@ void OnlineMp3Widget::httpAccess(QString url)
     //当网页回复消息，出发finish信号，读取数据
     connect(manager,&QNetworkAccessManager::finished,this,&OnlineMp3Widget::netReply);
 }
-
 
 
 void OnlineMp3Widget::on_btn_close_clicked()
@@ -344,6 +343,43 @@ void OnlineMp3Widget::netReply(QNetworkReply *reply)
         // 如果发生了网络错误，则打印错误信息
         qDebug() << reply->errorString();
     }
+}
+
+// 音乐歌曲的下载和播放
+void OnlineMp3Widget::downloadPlayer(QString album_id, QString hash)
+{
+    // 构建下载歌曲的 URL
+    QString url = kugouDownldadApi + QString("r=play/getdata"
+                                             "&hash=%1&album_id=%2"
+                                             "&dfid=1spkkh3QKS9PeiJupz0oTy5G"
+                                             "&mid=de94e92794f31e9cd6ff4cb309d2baa2"
+                                             "&platid=4").arg(hash).arg(album_id);
+
+    // 发起 HTTP 请求获取歌曲数据
+    httpAccess(url);
+
+    QByteArray JsonData;
+    QEventLoop loop;
+
+    // 等待 HTTP 请求完成并获取数据
+    auto d = connect(this, &OnlineMp3Widget::finish, [&](const QByteArray &data){
+        JsonData = data;
+        loop.exit(1);
+    });
+    loop.exec();
+    disconnect(d);
+
+    // 解析要播放的音乐
+    QString music = musicJsonAnalysis(JsonData);
+
+    // 设置媒体并播放音乐
+    player->setMedia(QUrl(music));
+    // 设置音量
+    player->setVolume(50);
+    // 设置音量滚动条
+    ui->hs_sound->setValue(50);
+    // 播放音乐
+    player->play();
 }
 
 
