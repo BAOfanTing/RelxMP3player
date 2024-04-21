@@ -169,7 +169,7 @@
     <string>播放歌曲记录</string>
    </property>
   </widget>
-  <widget class="QListWidget" name="lw_learch">
+  <widget class="QListWidget" name="lw_search">
    <property name="geometry">
     <rect>
      <x>25</x>

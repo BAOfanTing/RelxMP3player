@@ -33,7 +33,7 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     {
         // 3、定义查询对象，执行数据库操作
         QSqlQuery query; // 定义数据库查询对象
-        QString qstl = "create table if not exists songlist(id integer , songname text , singername text , album_id text)"; // 创建歌曲列表表格的SQL语句
+        QString qstl = "create table if not exists songlist(id integer , songname text , singername text , album_id text , hash text)"; // 创建歌曲列表表格的SQL语句
         int ret = query.exec(qstl); // 执行SQL语句
         if (!ret) // 检查SQL执行是否成功
         {
@@ -118,9 +118,75 @@ void OnlineMp3Widget::mousePressEvent(QMouseEvent *event)
     movePoint = event->globalPos() - pos();  // 计算鼠标相对于窗口左上角的偏移量
 }
 
+//音乐的hash和ablum_id值解析，使用Json
 void OnlineMp3Widget::hashJsonAnalysis(QByteArray JsonData)
 {
+    //qDebug()<< JsonData; // 打印输入的 JSON 数据，用于调试
 
+    //保存json查看数据
+    QFile file("output.json");
+    if(file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        file.write(JsonData);
+        file.close();
+    }
+
+    // 将 JSON 数据解析为 QJsonDocument 对象
+    QJsonDocument document = QJsonDocument::fromJson(JsonData);
+
+    if(document.isObject()) // 如果解析后的对象是一个 JSON 对象
+    {
+        QJsonObject data = document.object(); // 获取 JSON 对象中的"data"字段
+        if(data.contains("data")) // 如果"data"字段存在
+        {
+            QJsonObject objectInfo = data.value("data").toObject(); // 获取"data"字段中的对象
+            if(objectInfo.contains("info")) // 如果"info"字段存在
+            {
+                QJsonArray objectHash = objectInfo.value("info").toArray(); // 获取"info"字段中的数组
+
+                for(int i = 0; i < objectHash.count(); i++) // 遍历数组中的每个元素
+                {
+                    QString songname, singername, album_id, hash;
+                    QJsonObject album = objectHash.at(i).toObject(); // 获取数组元素中的对象
+
+                    // 从对象中获取歌曲名、歌手名、专辑 ID 和哈希值
+                    if(album.contains("album_id"))
+                    {
+                        album_id = album.value("album_id").toString();
+                    }
+                    if(album.contains("songname"))
+                    {
+                        songname = album.value("songname").toString();
+                    }
+                    if(album.contains("singername"))
+                    {
+                        singername = album.value("singername").toString();
+                    }
+                    if(album.contains("hash"))
+                    {
+                        hash = album.value("hash").toString();
+                    }
+
+                    // 将解析出的信息插入数据库
+                    QSqlQuery query;
+                    QString sql = QString("insert into songlist values(%1,'%2','%3','%4','%5')").arg(QString::number(i)).arg(songname).arg(singername).arg(album_id).arg(hash);
+                    if(!query.exec(sql)) // 如果插入数据库失败
+                    {
+                        QMessageBox::critical(nullptr, "插入数据库错误", db.lastError().text());
+                    }
+
+                    // 在搜索展示框中显示歌曲名称和歌手名称
+                    QString show = songname + "  " + singername;
+                    QListWidgetItem *item = new QListWidgetItem(show);
+                    ui->lw_search->addItem(item);
+                }
+            }
+        }
+    }
+    // if(document.isArray())
+    // {
+    //     qDebug() <<"Array";
+    // }
 }
 
 //访问HTTP网页
@@ -166,7 +232,7 @@ void OnlineMp3Widget::on_btn_change_clicked()
 void OnlineMp3Widget::on_btn_search_clicked()
 {
     // 清空搜索队列
-    ui->lw_learch->clear();
+    ui->lw_search->clear();
 
     // 清理数据库中已经存储的 hash 等数据
     QSqlQuery query;

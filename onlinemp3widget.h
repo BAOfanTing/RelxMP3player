@@ -8,6 +8,7 @@
 #include <QEventLoop>               //提供一种进入和离开事件循环的方法
 #include <QJsonArray>               //封装JSON数组
 #include <QJsonObject>              //封装JSON对象
+#include <QJsonDocument>
 
 #include <QMediaPlayer>             //播放音乐相关
 #include <QMediaPlaylist>
@@ -82,5 +83,6 @@ private:
 
     QNetworkRequest *request;
     QNetworkAccessManager *manager;
+    // QJsonDocument *document;
 };
 #endif // ONLINEMP3WIDGET_H
