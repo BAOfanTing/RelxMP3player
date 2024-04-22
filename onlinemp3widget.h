@@ -22,9 +22,12 @@
 #include <QTime>
 #include <math.h>
 #include <QMouseEvent>
+#include <QDateTime>
+#include "openssl/md5.h""
+#include <QCryptographicHash>
 
 static QString kugouSearchApi = "http://mobilecdn.kugou.com/api/v3/search/song?";
-static QString kugouDownldadApi = "https://wwwapi.kugou.com/yy/index.php?";
+static QString kugouDownldadApi = "https://wwwapi.kugou.com/play/songinfo?";
 
 
 QT_BEGIN_NAMESPACE
@@ -49,6 +52,7 @@ public:
     void hashJsonAnalysis(QByteArray JsonData);
     void httpAccess(QString url);
     QString musicJsonAnalysis(QByteArray JsonData);
+    QString getMd5(QString time,QString encode_album_audio_id);
 
 signals:
     void finish(QByteArray Data);

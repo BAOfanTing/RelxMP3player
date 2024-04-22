@@ -237,9 +237,40 @@ QString OnlineMp3Widget::musicJsonAnalysis(QByteArray JsonData)
             if (objectPlayurl.contains("play_url"))
             {
                 return objectPlayurl.value("play_url").toString();
+                qDebug()<<objectPlayurl.value("play_url").toString();
             }
         }
     }
+}
+
+QString OnlineMp3Widget::getMd5(QString time, QString encode_album_audio_id)
+{
+    // 构建签名列表
+    QStringList signature_list;
+    signature_list << "NVPh5oo715z5DIWAeQlhMDsWXXQV4hwt"
+                   << "appid=1014"
+                   << "clienttime=" + time
+                   << "clientver=20000"
+                   << "dfid=11SITU3au0iw0OdGgJ0EhTvI"
+                   << "encode_album_audio_id=" + encode_album_audio_id
+                   << "mid=707708a817d80eedd95f2ae68bc57780"
+                   << "platid=4"
+                   << "srcappid=2919"
+                   << "token="
+                   << "userid=0"
+                   << "uuid=707708a817d80eedd95f2ae68bc57780"
+                   << "NVPh5oo715z5DIWAeQlhMDsWXXQV4hwt";
+
+    // 将签名列表中的元素连接成一个字符串
+    QString string = signature_list.join("");
+    //qDebug()<< string;
+    //生成 MD5 哈希
+    QByteArray hashedData = QCryptographicHash::hash(string.toUtf8(), QCryptographicHash::Md5);
+
+    // 将哈希数据转换为十六进制字符串
+    QString md5Hash = hashedData.toHex();
+
+    return md5Hash;
 }
 
 
@@ -382,12 +413,27 @@ void OnlineMp3Widget::netReply(QNetworkReply *reply)
 // 音乐歌曲的下载和播放
 void OnlineMp3Widget::downloadPlayer(QString album_id, QString hash)
 {
-    // 构建下载歌曲的 URL
-    QString url = kugouDownldadApi + QString("r=play/getdata"
-                                             "&hash=%1&album_id=%2"
-                                             "&dfid=1spkkh3QKS9PeiJupz0oTy5G"
-                                             "&mid=de94e92794f31e9cd6ff4cb309d2baa2"
-                                             "&platid=4").arg(hash).arg(album_id);
+    //构建下载歌曲的 URL
+    QDateTime time = QDateTime::currentDateTime();
+    // 将当前时间转换为自纪元以来的秒数，并将其转换为字符串
+    QString currentTimeString = QString::number(time.toSecsSinceEpoch()*1000);
+    currentTimeString = "1713782920612";
+    QString encode_album_audio_id = "j5yn384";
+    QString signaturecode = getMd5(currentTimeString,encode_album_audio_id);
+    QString url = kugouDownldadApi + QString("srcappid=2919"
+                                             "&clientver=20000"
+                                             "&clienttime=%1"
+                                             "&mid=707708a817d80eedd95f2ae68bc57780"
+                                             "&uuid=707708a817d80eedd95f2ae68bc57780"
+                                             "&dfid=11SITU3au0iw0OdGgJ0EhTvI"
+                                             "&appid=1014"
+                                             "&platid=4"
+                                             "&encode_album_audio_id=%2"
+                                             "&token="
+                                             "&userid=0"
+                                             "&signature=%3"
+                                             ).arg(currentTimeString).arg(encode_album_audio_id).arg(signaturecode);
+    qDebug()<< url;
 
     // 发起 HTTP 请求获取歌曲数据
     httpAccess(url);
