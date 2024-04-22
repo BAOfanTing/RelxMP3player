@@ -497,7 +497,7 @@ void OnlineMp3Widget::downloadPlayer(QString encode_album_audio_id)
                                              "&userid=0"
                                              "&signature=%3"
                                              ).arg(currentTimeString).arg(encode_album_audio_id).arg(signaturecode);
-
+    qDebug()<<url;
     // 发起 HTTP 请求获取歌曲数据
     httpAccess(url);
 
@@ -540,42 +540,37 @@ void OnlineMp3Widget::playSearchMusic()
     }
 
     // 将选中的音乐的数据信息存入历史数据表
-    QString songname, singername, album_id, hash;
+    QString  singer_song_name,EMixSongID;
     while (query.next())
     {
         QSqlRecord record = query.record();
-        int songkey = record.indexOf("songname");
-        int singerkey = record.indexOf("singername");
-        int albumkey = record.indexOf("album_id");
-        int hashkey = record.indexOf("hash");
+        int singer_song_namekey = record.indexOf("FileName");
+        int EMixSongIDkey = record.indexOf("EMixSongID");
 
-        songname = query.value(songkey).toString();
-        singername = query.value(singerkey).toString();
-        album_id = query.value(albumkey).toString();
-        hash = query.value(hashkey).toString();
+        singer_song_name = query.value(singer_song_namekey).toString();
+        EMixSongID = query.value(EMixSongIDkey).toString();
 
         // 查询历史数据表中是否已经存在该歌曲的记录
-        sql = QString("select hash from songhistory where hash = '%1'").arg(hash);
+        sql = QString("select EMixSongID from songhistory where EMixSongID = '%1';").arg(EMixSongID);
         if (!query.exec(sql))
         {
-            QMessageBox::critical(nullptr, "select hash from songhistory where hash =", db.lastError().text());
+            QMessageBox::critical(nullptr, "select hash from songhistory where EMixSongID =", db.lastError().text());
         }
         // 如果不存在该记录，则将其存入历史数据表
         if (query.next() == NULL)
         {
-            sql = QString("insert into songhistory values(NULL, '%1', '%2', '%3', '%4')").arg(songname).arg(singername).arg(album_id).arg(hash);
+            sql = QString("insert into songhistory values(NULL, '%1', '%2')").arg(singer_song_name).arg(EMixSongID);
             if (!query.exec(sql))
             {
                 QMessageBox::critical(nullptr, "insert error", db.lastError().text());
             }
             // 将歌手和歌名放入历史歌曲表中显示
-            QString show = songname + " " + singername;
-            QListWidgetItem *item = new QListWidgetItem(show);
+            QListWidgetItem *item = new QListWidgetItem(singer_song_name);
             ui->lw_record->addItem(item);
         }
     }
     // 下载并播放选中的音乐
-    downloadPlayer(album_id);
+    downloadPlayer(EMixSongID);
 }
 
 
