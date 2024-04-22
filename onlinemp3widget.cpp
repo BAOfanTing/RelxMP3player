@@ -33,21 +33,21 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     {
         // 3、定义查询对象，执行数据库操作
         QSqlQuery query; // 定义数据库查询对象
-        QString qstl = "create table if not exists songlist(id integer , FileNam text , EMixSongID text)"; // 创建歌曲列表表格的SQL语句
+        QString qstl = "create table if not exists songlist(id integer , FileName text , EMixSongID text);"; // 创建歌曲列表表格的SQL语句
         int ret = query.exec(qstl); // 执行SQL语句
         if (!ret) // 检查SQL执行是否成功
         {
             // SQL执行失败，显示错误信息
-            QMessageBox::critical(nullptr, "错误", db.lastError().text());
+            QMessageBox::critical(nullptr, "create table songlist", db.lastError().text());
             qDebug() << db.lastError();
         }
 
         // 创建歌曲记录表格
-        qstl = "create table if not exists songhistory(id integer primary key autoincrement, songname text , singername text,album_id text , hash text)";
+        qstl = "create table if not exists songhistory(id integer primary key autoincrement, FileName text , EMixSongID text);";
         ret = query.exec(qstl);
         if (!ret)
         {
-            QMessageBox::critical(nullptr, "错误", db.lastError().text());
+            QMessageBox::critical(nullptr, "create table songhistory", db.lastError().text());
         }
 
         // 查询歌曲历史记录表中的数据并显示
@@ -59,14 +59,9 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
         }
         while (query.next()) // 遍历查询结果
         {
-            QString songname, singername;
             QSqlRecord rec = query.record(); // 获取查询结果的记录
-            int songnamekey = rec.indexOf("songname"); // 获取歌曲名字段在查询结果中的索引
-            int singerkey = rec.indexOf("singername"); // 获取歌手名字段在查询结果中的索引
-            songname = query.value(songnamekey).toString(); // 获取歌曲名
-            singername = query.value(singerkey).toString(); // 获取歌手名
-
-            QString strshow = songname + "--" + singername; // 构造要显示的字符串
+            int singer_song_namekey = rec.indexOf("FileName"); // 获取歌曲名字段在查询结果中的索引
+            QString strshow = rec.value(singer_song_namekey).toString(); // 构造要显示的字符串
             QListWidgetItem *item = new QListWidgetItem(strshow); // 创建列表项
             ui->lw_record->addItem(item); // 添加列表项到列表控件中
         }
@@ -123,7 +118,19 @@ void OnlineMp3Widget::mousePressEvent(QMouseEvent *event)
 void OnlineMp3Widget::hashJsonAnalysis(QByteArray JsonData)
 {
     //qDebug()<< JsonData; // 打印输入的 JSON 数据，用于调试
-
+    //移除callback123()
+    // 找到第一个左括号 "(" 的位置
+    int leftBracketIndex = JsonData.indexOf('(');
+    if (leftBracketIndex != -1)
+    {
+        // 找到最后一个右括号 ")" 的位置
+        int rightBracketIndex = JsonData.lastIndexOf(')');
+        if (rightBracketIndex != -1)
+        {
+            // 提取 JSON 数据，去除包裹的部分
+            JsonData = JsonData.mid(leftBracketIndex + 1, rightBracketIndex - leftBracketIndex - 1);
+        }
+    }
     //保存json查看数据
     QFile file("hash.json");
     if(file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -132,53 +139,46 @@ void OnlineMp3Widget::hashJsonAnalysis(QByteArray JsonData)
         file.close();
     }
 
+
     // 将 JSON 数据解析为 QJsonDocument 对象
     QJsonDocument document = QJsonDocument::fromJson(JsonData);
 
     if(document.isObject()) // 如果解析后的对象是一个 JSON 对象
     {
+        qDebug()<<"boject";
         QJsonObject data = document.object(); // 获取 JSON 对象中的"data"字段
         if(data.contains("data")) // 如果"data"字段存在
         {
             QJsonObject objectInfo = data.value("data").toObject(); // 获取"data"字段中的对象
-            if(objectInfo.contains("info")) // 如果"info"字段存在
+            qDebug()<<"data";
+            if(objectInfo.contains("lists")) // 如果"lists"字段存在
             {
-                QJsonArray objectHash = objectInfo.value("info").toArray(); // 获取"info"字段中的数组
-
+                QJsonArray objectHash = objectInfo.value("lists").toArray(); // 获取"lists"字段中的数组
+                qDebug()<<"lists";
                 for(int i = 0; i < objectHash.count(); i++) // 遍历数组中的每个元素
                 {
-                    QString songname, singername, album_id, hash;
+                    QString singer_song_name,EMixSongID;
                     QJsonObject album = objectHash.at(i).toObject(); // 获取数组元素中的对象
 
                     // 从对象中获取歌曲名、歌手名、专辑 ID 和哈希值
-                    if(album.contains("album_id"))
+                    if(album.contains("FileName"))
                     {
-                        album_id = album.value("album_id").toString();
+                        singer_song_name = album.value("FileName").toString();
                     }
-                    if(album.contains("songname"))
+                    if(album.contains("EMixSongID"))
                     {
-                        songname = album.value("songname").toString();
+                        EMixSongID = album.value("EMixSongID").toString();
                     }
-                    if(album.contains("singername"))
-                    {
-                        singername = album.value("singername").toString();
-                    }
-                    if(album.contains("hash"))
-                    {
-                        hash = album.value("hash").toString();
-                    }
-
                     // 将解析出的信息插入数据库
                     QSqlQuery query;
-                    QString sql = QString("insert into songlist values(%1,'%2','%3','%4','%5')").arg(QString::number(i)).arg(songname).arg(singername).arg(album_id).arg(hash);
+                    QString sql = QString("insert into songlist values(%1,'%2','%3');").arg(QString::number(i)).arg(singer_song_name).arg(EMixSongID);
                     if(!query.exec(sql)) // 如果插入数据库失败
                     {
                         QMessageBox::critical(nullptr, "插入数据库错误", db.lastError().text());
                     }
 
                     // 在搜索展示框中显示歌曲名称和歌手名称
-                    QString show = songname + "  " + singername;
-                    QListWidgetItem *item = new QListWidgetItem(show);
+                    QListWidgetItem *item = new QListWidgetItem(singer_song_name);
                     ui->lw_search->addItem(item);
                 }
             }
