@@ -33,7 +33,7 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     {
         // 3、定义查询对象，执行数据库操作
         QSqlQuery query; // 定义数据库查询对象
-        QString qstl = "create table if not exists songlist(id integer , songname text , singername text , album_id text , hash text)"; // 创建歌曲列表表格的SQL语句
+        QString qstl = "create table if not exists songlist(id integer , FileNam text , EMixSongID text)"; // 创建歌曲列表表格的SQL语句
         int ret = query.exec(qstl); // 执行SQL语句
         if (!ret) // 检查SQL执行是否成功
         {
@@ -243,7 +243,7 @@ QString OnlineMp3Widget::musicJsonAnalysis(QByteArray JsonData)
     }
 }
 
-QString OnlineMp3Widget::getMd5(QString time, QString encode_album_audio_id)
+QString OnlineMp3Widget::getDownload_Md5(QString time, QString encode_album_audio_id)
 {
     // 构建签名列表
     QStringList signature_list;
@@ -260,6 +260,45 @@ QString OnlineMp3Widget::getMd5(QString time, QString encode_album_audio_id)
                    << "userid=0"
                    << "uuid=707708a817d80eedd95f2ae68bc57780"
                    << "NVPh5oo715z5DIWAeQlhMDsWXXQV4hwt";
+
+    // 将签名列表中的元素连接成一个字符串
+    QString string = signature_list.join("");
+    //qDebug()<< string;
+    //生成 MD5 哈希
+    QByteArray hashedData = QCryptographicHash::hash(string.toUtf8(), QCryptographicHash::Md5);
+
+    // 将哈希数据转换为十六进制字符串
+    QString md5Hash = hashedData.toHex();
+
+    return md5Hash;
+}
+
+QString OnlineMp3Widget::getSearch_Md5(QString songname, QString time)
+{
+    // 构建签名列表
+    QStringList signature_list;
+    signature_list <<   "NVPh5oo715z5DIWAeQlhMDsWXXQV4hwt"
+                   <<   "appid=1014"
+                   <<   "bitrate=0"
+                   <<   "callback=callback123"
+                   <<   "clienttime=" + time
+                   <<   "clientver=1000"
+                   <<   "dfid=11SITU3au0iw0OdGgJ0EhTvI"
+                   <<   "filter=10"
+                   <<   "inputtype=0"
+                   <<   "iscorrection=1"
+                   <<   "isfuzzy=0"
+                   <<   "keyword=" + songname
+                   <<   "mid=707708a817d80eedd95f2ae68bc57780"
+                   <<   "page=1"
+                   <<   "pagesize=30"
+                   <<   "platform=WebFilter"
+                   <<   "privilege_filter=0"
+                   <<   "srcappid=2919"
+                   <<   "token="
+                   <<   "userid=0"
+                   <<   "uuid=707708a817d80eedd95f2ae68bc57780"
+                   <<   "NVPh5oo715z5DIWAeQlhMDsWXXQV4hwt";
 
     // 将签名列表中的元素连接成一个字符串
     QString string = signature_list.join("");
@@ -306,9 +345,34 @@ void OnlineMp3Widget::on_btn_search_clicked()
     {
         QMessageBox::critical(nullptr,"错误",query.lastError().text());
     }
+    QDateTime time = QDateTime::currentDateTime();
+    // 将当前时间转换为自纪元以来的秒数，并将其转换为字符串
+    QString currentTimeString = QString::number(time.toSecsSinceEpoch()*1000);
 
+    QString signaturecode = getSearch_Md5(ui->le_search->text(),currentTimeString);
     // 根据用户输入的 MP3 名称发起操作请求
-    QString url = kugouSearchApi + QString("format=json&keyword=%1&page=1&pagesize=20&showtype=1").arg(ui->le_search->text());
+    QString url = kugouSearchApi + QString("callback=callback123"
+                                           "&srcappid=2919"
+                                           "&clientver=1000"
+                                           "&clienttime=%1"
+                                           "&mid=707708a817d80eedd95f2ae68bc57780"
+                                           "&uuid=707708a817d80eedd95f2ae68bc57780"
+                                           "&dfid=11SITU3au0iw0OdGgJ0EhTvI"
+                                           "&keyword=%2"
+                                           "&page=1"
+                                           "&pagesize=30"
+                                           "&bitrate=0"
+                                           "&isfuzzy=0"
+                                           "&inputtype=0"
+                                           "&platform=WebFilter"
+                                            "&userid=0"
+                                           "&iscorrection=1"
+                                           "&privilege_filter=0"
+                                           "&filter=10"
+                                           "&token="
+                                           "&appid=1014"
+                                           "&signature=%3"
+                                           ).arg(currentTimeString).arg(ui->le_search->text()).arg(signaturecode);
 
     // 发起 HTTP 请求
     httpAccess(url);
@@ -411,15 +475,15 @@ void OnlineMp3Widget::netReply(QNetworkReply *reply)
 }
 
 // 音乐歌曲的下载和播放
-void OnlineMp3Widget::downloadPlayer(QString album_id, QString hash)
+void OnlineMp3Widget::downloadPlayer(QString encode_album_audio_id)
 {
     //构建下载歌曲的 URL
     QDateTime time = QDateTime::currentDateTime();
     // 将当前时间转换为自纪元以来的秒数，并将其转换为字符串
     QString currentTimeString = QString::number(time.toSecsSinceEpoch()*1000);
-    currentTimeString = "1713782920612";
-    QString encode_album_audio_id = "j5yn384";
-    QString signaturecode = getMd5(currentTimeString,encode_album_audio_id);
+    // currentTimeString = "1713782920612";
+    // QString encode_album_audio_id = "j5yn384";
+    QString signaturecode = getDownload_Md5(currentTimeString,encode_album_audio_id);
     QString url = kugouDownldadApi + QString("srcappid=2919"
                                              "&clientver=20000"
                                              "&clienttime=%1"
@@ -433,7 +497,6 @@ void OnlineMp3Widget::downloadPlayer(QString album_id, QString hash)
                                              "&userid=0"
                                              "&signature=%3"
                                              ).arg(currentTimeString).arg(encode_album_audio_id).arg(signaturecode);
-    qDebug()<< url;
 
     // 发起 HTTP 请求获取歌曲数据
     httpAccess(url);
@@ -512,7 +575,7 @@ void OnlineMp3Widget::playSearchMusic()
         }
     }
     // 下载并播放选中的音乐
-    downloadPlayer(album_id, hash);
+    downloadPlayer(album_id);
 }
 
 

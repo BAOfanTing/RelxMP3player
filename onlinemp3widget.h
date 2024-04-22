@@ -23,10 +23,9 @@
 #include <math.h>
 #include <QMouseEvent>
 #include <QDateTime>
-#include "openssl/md5.h""
 #include <QCryptographicHash>
 
-static QString kugouSearchApi = "http://mobilecdn.kugou.com/api/v3/search/song?";
+static QString kugouSearchApi = "https://complexsearch.kugou.com/v2/search/song?";
 static QString kugouDownldadApi = "https://wwwapi.kugou.com/play/songinfo?";
 
 
@@ -52,7 +51,8 @@ public:
     void hashJsonAnalysis(QByteArray JsonData);
     void httpAccess(QString url);
     QString musicJsonAnalysis(QByteArray JsonData);
-    QString getMd5(QString time,QString encode_album_audio_id);
+    QString getDownload_Md5(QString time,QString encode_album_audio_id);
+    QString getSearch_Md5(QString songname,QString time);
 
 signals:
     void finish(QByteArray Data);
@@ -76,7 +76,7 @@ private slots:
     void updateDuration(qint64);                //跟新播放的进度条
     void lyricTextShow(QString str);
     void netReply(QNetworkReply *reply);
-    void downloadPlayer(QString album_id, QString hash);
+    void downloadPlayer(QString encode_album_audio_id);
     void playSearchMusic();                     //双击搜索列表，播放医院
 private:
     Ui::OnlineMp3Widget *ui;
