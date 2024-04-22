@@ -43,7 +43,7 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
         }
 
         // 创建歌曲记录表格
-        qstl = "create table if not exists songhistory(id integer primary key autoincrement, songname text , singername text)";
+        qstl = "create table if not exists songhistory(id integer primary key autoincrement, songname text , singername text,album_id text , hash text)";
         ret = query.exec(qstl);
         if (!ret)
         {
@@ -76,7 +76,8 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     player = new QMediaPlayer;
     playerlist = new QMediaPlaylist;
 
-
+    //绑定双击搜索列表播放音乐槽函数
+    connect(ui->lw_search,&QListWidget::itemClicked,this,&OnlineMp3Widget::playSearchMusic);
 
 }
 
@@ -413,6 +414,59 @@ void OnlineMp3Widget::downloadPlayer(QString album_id, QString hash)
     ui->hs_sound->setValue(50);
     // 播放音乐
     player->play();
+}
+
+// 双击搜索列表，播放音乐
+void OnlineMp3Widget::playSearchMusic()
+{
+    // 获取双击的歌曲索引，即数据表的 ID 号
+    int row = ui->lw_search->currentRow();
+    qDebug() << "row" << row;
+
+    QSqlQuery query;
+    QString sql = QString("select * from songlist where id = %1;").arg(row);
+    if (!query.exec(sql))
+    {
+        QMessageBox::critical(nullptr, "select * from songlist where id =", db.lastError().text());
+    }
+
+    // 将选中的音乐的数据信息存入历史数据表
+    QString songname, singername, album_id, hash;
+    while (query.next())
+    {
+        QSqlRecord record = query.record();
+        int songkey = record.indexOf("songname");
+        int singerkey = record.indexOf("singername");
+        int albumkey = record.indexOf("album_id");
+        int hashkey = record.indexOf("hash");
+
+        songname = query.value(songkey).toString();
+        singername = query.value(singerkey).toString();
+        album_id = query.value(albumkey).toString();
+        hash = query.value(hashkey).toString();
+
+        // 查询历史数据表中是否已经存在该歌曲的记录
+        sql = QString("select hash from songhistory where hash = '%1'").arg(hash);
+        if (!query.exec(sql))
+        {
+            QMessageBox::critical(nullptr, "select hash from songhistory where hash =", db.lastError().text());
+        }
+        // 如果不存在该记录，则将其存入历史数据表
+        if (query.next() == NULL)
+        {
+            sql = QString("insert into songhistory values(NULL, '%1', '%2', '%3', '%4')").arg(songname).arg(singername).arg(album_id).arg(hash);
+            if (!query.exec(sql))
+            {
+                QMessageBox::critical(nullptr, "insert error", db.lastError().text());
+            }
+            // 将歌手和歌名放入历史歌曲表中显示
+            QString show = songname + " " + singername;
+            QListWidgetItem *item = new QListWidgetItem(show);
+            ui->lw_record->addItem(item);
+        }
+    }
+    // 下载并播放选中的音乐
+    downloadPlayer(album_id, hash);
 }
 
 

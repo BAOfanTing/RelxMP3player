@@ -73,7 +73,7 @@ private slots:
     void lyricTextShow(QString str);
     void netReply(QNetworkReply *reply);
     void downloadPlayer(QString album_id, QString hash);
-
+    void playSearchMusic();                     //双击搜索列表，播放医院
 private:
     Ui::OnlineMp3Widget *ui;
     bool mousePress = false;
