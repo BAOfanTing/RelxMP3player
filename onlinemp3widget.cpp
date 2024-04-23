@@ -411,6 +411,8 @@ void OnlineMp3Widget::on_btn_lastsong_clicked()
     {
         row = ui->lw_record->count();
     }
+    //选中当要播放的行
+    ui->lw_record->setCurrentRow(row);
     // 执行数据库查询
     QSqlQuery query;
     // 构建查询语句，查询指定行的歌曲信息
@@ -441,10 +443,42 @@ void OnlineMp3Widget::on_btn_start_stop_clicked()
 
 }
 
-
+//下一首
 void OnlineMp3Widget::on_btn_nextsong_clicked()
 {
+    // 当前行数减一
+    row++;
 
+    // 如果行数为负数，则将其设置为列表的最后一行
+    if(row > ui->lw_record->count())
+    {
+        row = 0;
+    }
+    //选中当要播放的行
+    ui->lw_record->setCurrentRow(row);
+    // 执行数据库查询
+    QSqlQuery query;
+    // 构建查询语句，查询指定行的歌曲信息
+    QString sql = QString("select * from songhistory where id = %1;").arg(row+1);
+    if(!query.exec(sql))
+    {
+        // 如果查询失败，显示错误信息
+        QMessageBox::critical(nullptr,"上一曲",db.lastError().text());
+    }
+
+    QString EMixSongID;
+    // 循环读取查询结果
+    while(query.next())
+    {
+        // 获取查询结果中"EMixSongID"字段的值
+        QSqlRecord lastrecord = query.record();
+        int EMixSongIDkey = lastrecord.indexOf("EMixSongID");
+        EMixSongID = query.value(EMixSongIDkey).toString();
+        qDebug()<<EMixSongID;
+    }
+
+    // 调用下载播放器函数，传入EMixSongID参数
+    downloadPlayer(EMixSongID);
 }
 
 
