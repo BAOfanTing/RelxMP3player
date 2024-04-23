@@ -77,6 +77,8 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     //绑定显示歌词
     connect(this,&OnlineMp3Widget::lyricShow,this,&OnlineMp3Widget::lyricTextShow);
 
+    //绑定进度度条
+    connect(player,&QMediaPlayer::positionChanged,this,&OnlineMp3Widget::updateDuration);
 }
 
 OnlineMp3Widget::~OnlineMp3Widget()
@@ -443,9 +445,13 @@ void OnlineMp3Widget::on_hs_songtime_valueChanged(int value)
 
 }
 
-void OnlineMp3Widget::updateDuration(qint64)
+//更新播放的进度条和时间
+void OnlineMp3Widget::updateDuration(qint64 value)
 {
-
+    // 设置播放进度条的范围为 0 到 播放器的总时长
+    ui->hs_songtime->setRange(0, player->duration());
+    // 设置播放进度条的当前值为当前播放位置
+    ui->hs_songtime->setValue(value);
 }
 
 //显示歌词
