@@ -217,7 +217,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="lb_time">
       <property name="text">
        <string>00:00</string>
       </property>
@@ -381,9 +381,9 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="label_6">
+     <widget class="QLabel" name="lb_sound">
       <property name="text">
-       <string>00:00</string>
+       <string>00</string>
       </property>
      </widget>
     </item>

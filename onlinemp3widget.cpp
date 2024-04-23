@@ -424,10 +424,13 @@ void OnlineMp3Widget::on_btn_loop_clicked()
 
 }
 
-
+//音量调节
 void OnlineMp3Widget::on_hs_sound_valueChanged(int value)
 {
-
+    //设置播放音量
+    player->setVolume(value);
+    //显示音量字符串
+    ui->lb_sound->setText(QString::number(value));
 }
 
 
