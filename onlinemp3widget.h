@@ -92,5 +92,6 @@ private:
     QNetworkRequest *request;
     QNetworkAccessManager *manager;
     // QJsonDocument *document;
+    bool canchange;                             //用于拖动进度条
 };
 #endif // ONLINEMP3WIDGET_H

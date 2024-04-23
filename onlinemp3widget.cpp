@@ -433,22 +433,29 @@ void OnlineMp3Widget::on_hs_sound_valueChanged(int value)
     ui->lb_sound->setText(QString::number(value));
 }
 
-
+//进度条释放
 void OnlineMp3Widget::on_hs_songtime_sliderPressed()
 {
-
+    canchange = true;
 }
 
-
+//进度条按下
 void OnlineMp3Widget::on_hs_songtime_sliderReleased()
 {
-
+    canchange = false;
 }
 
-
+//进度条
 void OnlineMp3Widget::on_hs_songtime_valueChanged(int value)
 {
-
+    //设置时间
+    QTime time(0,value/60000,qRound((value%60000)/1000.0));
+    ui->lb_time->setText(time.toString("mm:ss"));
+    //拖动时不播放，松开播放
+    if(canchange == true)
+    {
+        player->setPosition(value);
+    }
 }
 
 //更新播放的进度条和时间
