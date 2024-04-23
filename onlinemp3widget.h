@@ -73,11 +73,12 @@ private slots:
     void on_hs_songtime_sliderReleased();
     void on_hs_songtime_valueChanged(int value);
 
-    void updateDuration(qint64);                //跟新播放的进度条
+    void updateDuration(qint64 value);                //跟新播放的进度条
     void lyricTextShow(QString str);
     void netReply(QNetworkReply *reply);
     void downloadPlayer(QString encode_album_audio_id);
     void playSearchMusic();                     //双击搜索列表，播放医院
+
 private:
     Ui::OnlineMp3Widget *ui;
     bool mousePress = false;

@@ -74,6 +74,9 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     //绑定双击搜索列表播放音乐槽函数
     connect(ui->lw_search,&QListWidget::itemClicked,this,&OnlineMp3Widget::playSearchMusic);
 
+    //绑定显示歌词
+    connect(this,&OnlineMp3Widget::lyricShow,this,&OnlineMp3Widget::lyricTextShow);
+
 }
 
 OnlineMp3Widget::~OnlineMp3Widget()
@@ -445,10 +448,13 @@ void OnlineMp3Widget::updateDuration(qint64)
 
 }
 
+//显示歌词
 void OnlineMp3Widget::lyricTextShow(QString str)
 {
-
+    ui->tb_songtext->setText(str);
 }
+
+
 
 // 读取网络数据槽函数
 void OnlineMp3Widget::netReply(QNetworkReply *reply)
