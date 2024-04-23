@@ -77,7 +77,8 @@ private slots:
     void lyricTextShow(QString str);
     void netReply(QNetworkReply *reply);
     void downloadPlayer(QString encode_album_audio_id);
-    void playSearchMusic();                     //双击搜索列表，播放医院
+    void playSearchMusic();                     //双击搜索列表，播放音乐
+    void playHistoryMusic();                    //播放历史音乐
 
 private:
     Ui::OnlineMp3Widget *ui;

@@ -72,12 +72,15 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     playerlist = new QMediaPlaylist;
 
     //绑定双击搜索列表播放音乐槽函数
-    connect(ui->lw_search,&QListWidget::itemClicked,this,&OnlineMp3Widget::playSearchMusic);
+    connect(ui->lw_search,&QListWidget::itemDoubleClicked,this,&OnlineMp3Widget::playSearchMusic);
+
+    //绑定双击历史列表播放音乐槽函数
+    connect(ui->lw_record,&QListWidget::itemDoubleClicked,this,&OnlineMp3Widget::playHistoryMusic);
 
     //绑定显示歌词
     connect(this,&OnlineMp3Widget::lyricShow,this,&OnlineMp3Widget::lyricTextShow);
 
-    //绑定进度度条
+   // 绑定播放器的位置变化信号到更新播放进度函数
     connect(player,&QMediaPlayer::positionChanged,this,&OnlineMp3Widget::updateDuration);
 }
 
@@ -581,10 +584,40 @@ void OnlineMp3Widget::playSearchMusic()
             ui->lw_record->addItem(item);
         }
     }
-    // 下载并播放选中的音乐
+    // 播放选中的音乐
     downloadPlayer(EMixSongID);
 }
 
+//播放历史音乐
+void OnlineMp3Widget::playHistoryMusic()
+{
+    // 获取当前列表中双击的歌曲索引，即数据表的 ID 号
+    int row = ui->lw_record->currentRow();
+
+    // 执行数据库查询，获取对应 ID 的歌曲信息
+    QSqlQuery query;
+    QString sql = QString("SELECT * FROM songhistory WHERE id = %1;").arg(row+1);
+    if (!query.exec(sql))
+    {
+        // 如果查询失败，显示错误消息
+        QMessageBox::critical(nullptr, "Error executing query", db.lastError().text());
+    }
+
+    QString EMixSongID; // 用于存储查询到的歌曲的 EMixSongID
+
+    // 遍历查询结果集中的每一条记录
+    while (query.next())
+    {
+        QSqlRecord record = query.record(); // 获取当前记录
+        int EMixSongIDkey = record.indexOf("EMixSongID"); // 获取 EMixSongID 字段在记录中的索引
+
+        // 获取 EMixSongID 字段的值，并存储到 EMixSongID 变量中
+        EMixSongID = query.value(EMixSongIDkey).toString();
+    }
+
+    // 根据获取到的 EMixSongID 播放选中的音乐
+    downloadPlayer(EMixSongID);
+}
 
 
 
