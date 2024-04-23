@@ -400,12 +400,41 @@ void OnlineMp3Widget::on_btn_search_clicked()
     hashJsonAnalysis(JsonData);
 }
 
-
+//上一首
 void OnlineMp3Widget::on_btn_lastsong_clicked()
 {
+    // 当前行数减一
+    row--;
 
+    // 如果行数为负数，则将其设置为列表的最后一行
+    if(row < 0)
+    {
+        row = ui->lw_record->count();
+    }
+    // 执行数据库查询
+    QSqlQuery query;
+    // 构建查询语句，查询指定行的歌曲信息
+    QString sql = QString("select * from songhistory where id = %1;").arg(row+1);
+    if(!query.exec(sql))
+    {
+        // 如果查询失败，显示错误信息
+        QMessageBox::critical(nullptr,"上一曲",db.lastError().text());
+    }
+
+    QString EMixSongID;
+    // 循环读取查询结果
+    while(query.next())
+    {
+        // 获取查询结果中"EMixSongID"字段的值
+        QSqlRecord lastrecord = query.record();
+        int EMixSongIDkey = lastrecord.indexOf("EMixSongID");
+        EMixSongID = query.value(EMixSongIDkey).toString();
+        qDebug()<<EMixSongID;
+    }
+
+    // 调用下载播放器函数，传入EMixSongID参数
+    downloadPlayer(EMixSongID);
 }
-
 
 void OnlineMp3Widget::on_btn_start_stop_clicked()
 {
@@ -554,8 +583,7 @@ void OnlineMp3Widget::downloadPlayer(QString encode_album_audio_id)
 void OnlineMp3Widget::playSearchMusic()
 {
     // 获取双击的歌曲索引，即数据表的 ID 号
-    int row = ui->lw_search->currentRow();
-    qDebug() << "row" << row;
+    row = ui->lw_search->currentRow();
 
     QSqlQuery query;
     QString sql = QString("select * from songlist where id = %1;").arg(row);
@@ -602,7 +630,7 @@ void OnlineMp3Widget::playSearchMusic()
 void OnlineMp3Widget::playHistoryMusic()
 {
     // 获取当前列表中双击的歌曲索引，即数据表的 ID 号
-    int row = ui->lw_record->currentRow();
+    row = ui->lw_record->currentRow();
 
     // 执行数据库查询，获取对应 ID 的歌曲信息
     QSqlQuery query;
