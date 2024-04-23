@@ -92,7 +92,7 @@ OnlineMp3Widget::~OnlineMp3Widget()
 void OnlineMp3Widget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    //painter.drawPixmap(0,0,width(),height(),QPixmap(":/res/dingyilang.png"));
+    // painter.drawPixmap(0,0,width(),height(),QPixmap(":/res/ywyd.jpg"));
 }
 
 //移动事件
@@ -438,9 +438,19 @@ void OnlineMp3Widget::on_btn_lastsong_clicked()
     downloadPlayer(EMixSongID);
 }
 
+//播放和暂停
 void OnlineMp3Widget::on_btn_start_stop_clicked()
 {
-
+    // 如果播放器状态为播放状态，则暂停播放
+    if(player->state() == QMediaPlayer::PlayingState)
+    {
+        player->pause();
+    }
+    // 如果播放器状态为暂停状态，则开始播放
+    else if(player->state() == QMediaPlayer::PausedState)
+    {
+        player->play();
+    }
 }
 
 //下一首
