@@ -82,6 +82,22 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
 
    // 绑定播放器的位置变化信号到更新播放进度函数
     connect(player,&QMediaPlayer::positionChanged,this,&OnlineMp3Widget::updateDuration);
+
+    // 创建默认皮肤动作
+    QAction *defaultSkin = new QAction("默认皮肤");
+    connect(defaultSkin, &QAction::triggered, this, &OnlineMp3Widget::backgroundtoDefaultSkin);
+
+    // 创建自定义皮肤动作
+    QAction *dingyiSkin = new QAction("自定义皮肤");
+    connect(dingyiSkin, &QAction::triggered, this, &OnlineMp3Widget::backgroundtoDingyiSkin);
+
+    // 创建换肤菜单
+    menuChange = new QMenu(this);
+    // 将默认皮肤动作添加到换肤菜单
+    menuChange->addAction(defaultSkin);
+    // 将自定义皮肤动作添加到换肤菜单
+    menuChange->addAction(dingyiSkin);
+
 }
 
 OnlineMp3Widget::~OnlineMp3Widget()
@@ -91,7 +107,7 @@ OnlineMp3Widget::~OnlineMp3Widget()
 
 void OnlineMp3Widget::paintEvent(QPaintEvent *event)
 {
-    QPainter painter(this);
+    // painter = new QPainter(this);
     // painter.drawPixmap(0,0,width(),height(),QPixmap(":/res/ywyd.jpg"));
 }
 
@@ -329,13 +345,15 @@ void OnlineMp3Widget::on_btn_close_clicked()
 
 void OnlineMp3Widget::on_btn_min_clicked()
 {
-
+    QMessageBox::information(nullptr,"About","MP3网络搜索引擎\n"
+                                               "【作者】：纯真丁一郎\n");
 }
 
 
 void OnlineMp3Widget::on_btn_change_clicked()
 {
-
+    // 在按钮点击时弹出换肤菜单，位置为当前鼠标位置
+    menuChange->exec(QCursor::pos());
 }
 
 
@@ -494,7 +512,8 @@ void OnlineMp3Widget::on_btn_nextsong_clicked()
 
 void OnlineMp3Widget::on_btn_loop_clicked()
 {
-
+    // // 将播放模式设置为循环播放
+    // playerlist->setPlaybackMode(QMediaPlaylist::Loop);
 }
 
 //音量调节
@@ -545,8 +564,6 @@ void OnlineMp3Widget::lyricTextShow(QString str)
 {
     ui->tb_songtext->setText(str);
 }
-
-
 
 // 读取网络数据槽函数
 void OnlineMp3Widget::netReply(QNetworkReply *reply)
@@ -699,6 +716,30 @@ void OnlineMp3Widget::playHistoryMusic()
 
     // 根据获取到的 EMixSongID 播放选中的音乐
     downloadPlayer(EMixSongID);
+}
+
+void OnlineMp3Widget::backgroundtoDefaultSkin()
+{
+    // 获取当前窗口的调色板
+    QPalette palette = this->palette();
+    // 设置窗口背景为默认皮肤图片，并根据窗口大小进行缩放
+    palette.setBrush(QPalette::Window, QBrush(QPixmap(":/res/123.jpg").scaled(this->size())));
+    // 应用新的调色板
+    this->setPalette(palette);
+}
+
+void OnlineMp3Widget::backgroundtoDingyiSkin()
+{
+    // 打开文件对话框，让用户选择自定义皮肤图片
+    QString filepath = QFileDialog::getOpenFileName(this, "打开文件", ".", "*.jpg *.png *.jpeg");
+    // 根据用户选择的图片路径创建 QPixmap 对象
+    QPixmap mmp(filepath);
+    // 获取当前窗口的调色板
+    QPalette palette = this->palette();
+    // 设置窗口背景为用户选择的自定义皮肤图片，并根据窗口大小进行缩放
+    palette.setBrush(QPalette::Window, QBrush(mmp.scaled(this->size())));
+    // 应用新的调色板
+    this->setPalette(palette);
 }
 
 

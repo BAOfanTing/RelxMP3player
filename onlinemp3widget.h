@@ -24,7 +24,8 @@
 #include <QMouseEvent>
 #include <QDateTime>
 #include <QCryptographicHash>
-
+#include <QMenu>
+#include <QFileDialog>
 static QString kugouSearchApi = "https://complexsearch.kugou.com/v2/search/song?";
 static QString kugouDownldadApi = "https://wwwapi.kugou.com/play/songinfo?";
 
@@ -79,6 +80,8 @@ private slots:
     void downloadPlayer(QString encode_album_audio_id);
     void playSearchMusic();                     //双击搜索列表，播放音乐
     void playHistoryMusic();                    //播放历史音乐
+    void backgroundtoDefaultSkin();             //默认皮肤
+    void backgroundtoDingyiSkin();              //自定义皮肤
 
 private:
     Ui::OnlineMp3Widget *ui;
@@ -94,5 +97,8 @@ private:
     // QJsonDocument *document;
     bool canchange;                             //用于拖动进度条
     int row =-1;
+
+    //更换皮肤菜单
+    QMenu *menuChange;
 };
 #endif // ONLINEMP3WIDGET_H
