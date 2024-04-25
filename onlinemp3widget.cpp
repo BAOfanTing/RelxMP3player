@@ -98,6 +98,8 @@ OnlineMp3Widget::OnlineMp3Widget(QWidget *parent)
     // 将自定义皮肤动作添加到换肤菜单
     menuChange->addAction(dingyiSkin);
 
+    //系统托盘初始化
+    initTrayIcon();
 }
 
 OnlineMp3Widget::~OnlineMp3Widget()
@@ -336,6 +338,61 @@ QString OnlineMp3Widget::getSearch_Md5(QString songname, QString time)
     return md5Hash;
 }
 
+void OnlineMp3Widget::TrayIconActivate(QSystemTrayIcon::ActivationReason reason)
+{
+    switch(reason)
+    {
+    // 双击系统托盘图标触发的操作
+    case QSystemTrayIcon::DoubleClick:
+        // 如果窗口当前为隐藏状态，则显示窗口
+        if(isHidden())
+        {
+            show();
+        }
+        // 否则隐藏窗口
+        else
+        {
+            hide();
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void OnlineMp3Widget::initTrayIcon()
+{
+    // 创建系统托盘图标对象
+    mysystemTray = new QSystemTrayIcon(this);
+    // 设置系统托盘图标
+    mysystemTray->setIcon(QIcon(":/res/start.svg"));
+
+    // 连接系统托盘图标的激活事件到槽函数 TrayIconActivate
+    connect(mysystemTray, &QSystemTrayIcon::activated, this, &OnlineMp3Widget::TrayIconActivate);
+
+    // 创建退出应用程序的动作
+    QAction *actionquit = new QAction("退出");
+    // 连接退出动作的触发事件到槽函数 quitmucisPlayer
+    connect(actionquit, &QAction::triggered, this, &OnlineMp3Widget::quitmucisPlayer);
+
+    // 创建系统托盘菜单
+    QMenu *trayiconmenu = new QMenu(this);
+    // 将退出动作添加到系统托盘菜单
+    trayiconmenu->addAction(actionquit);
+    // 将系统托盘菜单设置为系统托盘图标的上下文菜单
+    mysystemTray->setContextMenu(trayiconmenu);
+    // 显示系统托盘图标
+    mysystemTray->show();
+}
+
+// 退出应用程序
+void OnlineMp3Widget::quitmucisPlayer()
+{
+    // 退出应用程序
+    QCoreApplication::quit();
+}
+
 
 void OnlineMp3Widget::on_btn_close_clicked()
 {
@@ -462,11 +519,13 @@ void OnlineMp3Widget::on_btn_start_stop_clicked()
     // 如果播放器状态为播放状态，则暂停播放
     if(player->state() == QMediaPlayer::PlayingState)
     {
+        ui->btn_start_stop->setIcon(QIcon(":/res/start.svg"));
         player->pause();
     }
     // 如果播放器状态为暂停状态，则开始播放
     else if(player->state() == QMediaPlayer::PausedState)
     {
+        ui->btn_start_stop->setIcon(QIcon(":/res/stop.svg"));
         player->play();
     }
 }
@@ -638,6 +697,7 @@ void OnlineMp3Widget::downloadPlayer(QString encode_album_audio_id)
     ui->hs_sound->setValue(50);
     // 播放音乐
     player->play();
+    ui->btn_start_stop->setIcon(QIcon(":/res/stop.svg"));
 }
 
 // 双击搜索列表，播放音乐

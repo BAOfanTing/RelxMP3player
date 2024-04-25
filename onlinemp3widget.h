@@ -26,6 +26,10 @@
 #include <QCryptographicHash>
 #include <QMenu>
 #include <QFileDialog>
+
+//系统托盘
+#include<QSystemTrayIcon>
+
 static QString kugouSearchApi = "https://complexsearch.kugou.com/v2/search/song?";
 static QString kugouDownldadApi = "https://wwwapi.kugou.com/play/songinfo?";
 
@@ -55,6 +59,13 @@ public:
     QString getDownload_Md5(QString time,QString encode_album_audio_id);
     QString getSearch_Md5(QString songname,QString time);
 
+    //系统托盘实现
+    QSystemTrayIcon *mysystemTray;
+    //响应系统托盘
+    void TrayIconActivate(QSystemTrayIcon::ActivationReason reason);
+    void initTrayIcon();        //初始化
+    void quitmucisPlayer();     //退出
+
 signals:
     void finish(QByteArray Data);
     void lyricShow(QString url);
@@ -82,6 +93,8 @@ private slots:
     void playHistoryMusic();                    //播放历史音乐
     void backgroundtoDefaultSkin();             //默认皮肤
     void backgroundtoDingyiSkin();              //自定义皮肤
+
+
 
 private:
     Ui::OnlineMp3Widget *ui;
