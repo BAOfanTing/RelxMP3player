@@ -340,6 +340,12 @@
         <height>30</height>
        </size>
       </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="autoExclusive">
+       <bool>false</bool>
+      </property>
      </widget>
     </item>
     <item>

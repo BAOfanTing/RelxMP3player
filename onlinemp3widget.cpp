@@ -571,8 +571,25 @@ void OnlineMp3Widget::on_btn_nextsong_clicked()
 
 void OnlineMp3Widget::on_btn_loop_clicked()
 {
-    // // 将播放模式设置为循环播放
-    // playerlist->setPlaybackMode(QMediaPlaylist::Loop);
+    // 将播放模式设置为循环播放
+    bool isChecked = ui->btn_loop->isChecked();
+    qDebug()<<isChecked;
+    QMetaObject::Connection sig;
+    if(isChecked)
+    {
+        sig = connect(player,&QMediaPlayer::stateChanged,[=](){
+            if(player->state() == QMediaPlayer::StoppedState)
+            {
+                player->setPosition(0);
+                player->play();
+            }
+        });
+    }
+    else
+    {
+        disconnect(sig);
+    }
+
 }
 
 //音量调节
