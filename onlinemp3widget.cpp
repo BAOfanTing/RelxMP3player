@@ -571,10 +571,36 @@ void OnlineMp3Widget::on_btn_nextsong_clicked()
 
 void OnlineMp3Widget::on_btn_loop_clicked()
 {
-    // // 将播放模式设置为循环播放
-    // playerlist->setPlaybackMode(QMediaPlaylist::Loop);
-}
+    // 将播放模式设置为循环播放
+    bool isChecked = ui->btn_loop->isChecked();
+    // 输出按钮状态，以便调试
+    qDebug() << isChecked;
 
+    // 声明连接对象
+    QMetaObject::Connection sig;
+
+    // 如果按钮被选中
+    if (isChecked)
+    {
+        // 连接播放器的 stateChanged 信号到匿名函数
+        // 当播放状态改变时执行相应操作
+        sig = connect(player, &QMediaPlayer::stateChanged, [=]() {
+            // 如果播放器状态变为停止状态
+            if (player->state() == QMediaPlayer::StoppedState)
+            {
+                // 将播放位置设置为0
+                player->setPosition(0);
+                // 重新开始播放
+                player->play();
+            }
+        });
+    }
+    else
+    {
+        // 如果按钮未被选中，断开之前的连接
+        disconnect(sig);
+    }
+}
 //音量调节
 void OnlineMp3Widget::on_hs_sound_valueChanged(int value)
 {
